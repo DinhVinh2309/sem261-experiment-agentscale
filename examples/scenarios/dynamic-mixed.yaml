@@ -1,0 +1,50 @@
+api_version: workload.platform/v1alpha1
+metadata:
+  name: dynamic-mixed
+  description: Dynamic workflow with deterministic branch selection
+  seed: 101
+workload:
+  mode: open_loop
+  workflow_type: dynamic
+  total_workflows: 100
+  duration_seconds: null
+  arrival:
+    type: constant_rate
+    rate_per_second: 1.5
+  max_in_flight: 25
+  overload_policy: wait
+  warmup_seconds: 10
+  drain_timeout_seconds: 180
+  cooldown_seconds: 5
+workflow:
+  execution_mode: synthetic
+  timeout_seconds: 180
+  max_retries: 0
+  task_profile:
+    synthetic_delay_ms: 500
+    input_tokens_estimate: 600
+    output_tokens_estimate: 180
+  dynamic:
+    condition:
+      type: seeded_complexity
+      complex_probability: 0.35
+    simple_path:
+      steps:
+        - id: summarize
+          task_type: summarization
+    complex_path:
+      max_iterations: 2
+      steps:
+        - id: research
+          task_type: research
+        - id: evaluate
+          task_type: evaluation
+        - id: revise
+          task_type: generation
+observability:
+  prometheus: true
+  export_workflow_events: true
+  export_task_events: true
+output:
+  base_directory: results
+  format: jsonl

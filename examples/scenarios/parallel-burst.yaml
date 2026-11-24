@@ -1,0 +1,50 @@
+api_version: workload.platform/v1alpha1
+metadata:
+  name: parallel-burst
+  description: Parallel fan-out workflow with a burst arrival profile
+  seed: 73
+workload:
+  mode: open_loop
+  workflow_type: parallel
+  total_workflows: 80
+  duration_seconds: null
+  arrival:
+    type: burst
+    phases:
+      - duration_seconds: 20
+        rate_per_second: 0.5
+      - duration_seconds: 30
+        rate_per_second: 3.0
+      - duration_seconds: 20
+        rate_per_second: 0.5
+  max_in_flight: 30
+  overload_policy: wait
+  warmup_seconds: 10
+  drain_timeout_seconds: 120
+  cooldown_seconds: 5
+workflow:
+  execution_mode: synthetic
+  timeout_seconds: 180
+  max_retries: 0
+  task_profile:
+    synthetic_delay_ms: 700
+    input_tokens_estimate: 700
+    output_tokens_estimate: 200
+  parallel:
+    join_policy: all
+    branches:
+      - id: branch_a
+        task_type: analysis
+      - id: branch_b
+        task_type: extraction
+      - id: branch_c
+        task_type: evaluation
+      - id: branch_d
+        task_type: summarization
+observability:
+  prometheus: true
+  export_workflow_events: true
+  export_task_events: true
+output:
+  base_directory: results
+  format: jsonl
